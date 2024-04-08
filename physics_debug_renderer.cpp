@@ -2,6 +2,7 @@
 #include "../../math/conversions.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+//#include <Jolt/Renderer/DebugRenderer.cpp> // TODO REMOVE THIS AT ONCE
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
@@ -10,20 +11,20 @@ PhysicsDebugRenderer::PhysicsDebugRenderer() : shader_pipeline(
         "../graphics/shaders/CWL_v_transformation.vert",
         "../graphics/shaders/fixed_color.frag") {
 
-
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ibo);
 
-    Initialize();
+    JPH::DebugRenderer::Initialize();
 
 }
 
-PhysicsDebugRenderer::~PhysicsDebugRenderer() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-//    glDeleteProgram(shader_program);
-}
+//PhysicsDebugRenderer::~PhysicsDebugRenderer() = default;
+//PhysicsDebugRenderer::~PhysicsDebugRenderer() {
+//    glDeleteVertexArrays(1, &vao);
+//    glDeleteBuffers(1, &vbo);
+////    glDeleteProgram(shader_program);
+//}
 
 void PhysicsDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) {
 
