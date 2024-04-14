@@ -5,14 +5,14 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-PhysicsDebugRenderer::PhysicsDebugRenderer()
-    : shader_pipeline("../graphics/shaders/CWL_v_transformation.vert", "../graphics/shaders/fixed_color.frag") {
+PhysicsDebugRenderer::PhysicsDebugRenderer() {
+    shader_pipeline.load_in_shaders_from_file("../graphics/shaders/CWL_v_transformation.vert",
+                                              "../graphics/shaders/fixed_color.frag");
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ibo);
 
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ibo);
-
-  JPH::DebugRenderer::Initialize();
+    JPH::DebugRenderer::Initialize();
 }
 
 // PhysicsDebugRenderer::~PhysicsDebugRenderer() = default;
@@ -24,99 +24,103 @@ PhysicsDebugRenderer::PhysicsDebugRenderer()
 
 void PhysicsDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) {
 
-  printf("trying to draw line\n");
-  //    glUseProgram(shader_program);
-  //
-  //    float vertices[6] = {
-  //            inFrom.GetX(), inFrom.GetY(), inFrom.GetZ(),
-  //            inFrom.GetX(), inFrom.GetY(), inFrom.GetZ(),
-  //    };
-  //
-  //    glBindVertexArray(vao);
-  //
-  //    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  //    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  //
-  //    JPH::Vec4 color = inColor.ToVec4();
-  //    float rgb_color[3] = {color.GetX(), color.GetY(), color.GetZ()};
-  ////    glUniform3fv(glGetUniformLocation(shader_program, "color"), 1, &rgb_color[0]);
-  //    glUniform3fv(glGetUniformLocation(shader_program, "color"), 1, rgb_color);
-  //
-  //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
-  //    glEnableVertexAttribArray(0);
-  //
-  //    glDrawArrays(GL_LINES, 0, 2);
+    printf("trying to draw line\n");
+    //    glUseProgram(shader_program);
+    //
+    //    float vertices[6] = {
+    //            inFrom.GetX(), inFrom.GetY(), inFrom.GetZ(),
+    //            inFrom.GetX(), inFrom.GetY(), inFrom.GetZ(),
+    //    };
+    //
+    //    glBindVertexArray(vao);
+    //
+    //    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //
+    //    JPH::Vec4 color = inColor.ToVec4();
+    //    float rgb_color[3] = {color.GetX(), color.GetY(), color.GetZ()};
+    ////    glUniform3fv(glGetUniformLocation(shader_program, "color"), 1, &rgb_color[0]);
+    //    glUniform3fv(glGetUniformLocation(shader_program, "color"), 1, rgb_color);
+    //
+    //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    //    glEnableVertexAttribArray(0);
+    //
+    //    glDrawArrays(GL_LINES, 0, 2);
 }
 
 JPH::DebugRenderer::Batch PhysicsDebugRenderer::CreateTriangleBatch(const Triangle *inTriangles, int inTriangleCount) {
-  auto *triangle_data = new TriangleData(inTriangles, inTriangleCount);
-  return triangle_data;
+    auto *triangle_data = new TriangleData(inTriangles, inTriangleCount);
+    return triangle_data;
 }
 
 JPH::DebugRenderer::Batch PhysicsDebugRenderer::CreateTriangleBatch(const Vertex *inVertices, int inVertexCount,
                                                                     const JPH::uint32 *inIndices, int inIndexCount) {
-  auto *triangle_data = new TriangleData(inVertices, inVertexCount, inIndices, inIndexCount);
-  return triangle_data;
+    auto *triangle_data = new TriangleData(inVertices, inVertexCount, inIndices, inIndexCount);
+    return triangle_data;
 }
 
 void PhysicsDebugRenderer::DrawGeometry(JPH::RMat44Arg inModelMatrix, const JPH::AABox &inWorldSpaceBounds,
                                         float inLODScaleSq, JPH::ColorArg inModelColor, const GeometryRef &inGeometry,
                                         ECullMode inCullMode, ECastShadow inCastShadow, EDrawMode inDrawMode) {
-  /*
-   * the geometry contains a list of lods, each lod contains a triangleBatch
-   * which can be cast to BatchImpl. These triangle batches were created with
-   * the createTriangleBatch function, so those must be implemented before you implement
-   * this or else it will not work, each BatchImpl which impelments RenderPrimitive
-   */
-  const JPH::Array<LOD> &geometry_lods = inGeometry->mLODs;
-  // use lod 0 because our game doesn't use LOD at all
-  TriangleData *triangle_batch = static_cast<TriangleData *>(geometry_lods[0].mTriangleBatch.GetPtr());
+    /*
+     * the geometry contains a list of lods, each lod contains a triangleBatch
+     * which can be cast to BatchImpl. These triangle batches were created with
+     * the createTriangleBatch function, so those must be implemented before you implement
+     * this or else it will not work, each BatchImpl which impelments RenderPrimitive
+     */
+    const JPH::Array<LOD> &geometry_lods = inGeometry->mLODs;
+    // use lod 0 because our game doesn't use LOD at all
+    TriangleData *triangle_batch = static_cast<TriangleData *>(geometry_lods[0].mTriangleBatch.GetPtr());
 
-  if (triangle_batch->uses_indices) {
+    if (triangle_batch->uses_indices) {
 
-    //        printf("trying to draw indices \n");
+        //        printf("trying to draw indices \n");
 
-    glUseProgram(shader_pipeline.shader_program_id);
-    glBindVertexArray(vao);
+        glUseProgram(shader_pipeline.shader_program_id);
+        glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, triangle_batch->vertices.size() * sizeof(float), &triangle_batch->vertices.front(),
-                 GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, triangle_batch->vertices.size() * sizeof(float),
+                     &triangle_batch->vertices.front(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle_batch->indices.size() * sizeof(JPH::uint32),
-                 &triangle_batch->indices.front(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle_batch->indices.size() * sizeof(JPH::uint32),
+                     &triangle_batch->indices.front(), GL_STATIC_DRAW);
 
-    GLuint position_location = glGetAttribLocation(shader_pipeline.shader_program_id, "position");
-    glEnableVertexAttribArray(position_location);
-    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+        GLuint position_location = glGetAttribLocation(shader_pipeline.shader_program_id, "position");
+        glEnableVertexAttribArray(position_location);
+        glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
-    glm::mat4 local_to_world = convert_mat4_from_jolt_to_glm(inModelMatrix);
-    GLint local_to_world_uniform_location = glGetUniformLocation(shader_pipeline.shader_program_id, "local_to_world");
-    glUniformMatrix4fv(local_to_world_uniform_location, 1, GL_FALSE, glm::value_ptr(local_to_world));
+        glm::mat4 local_to_world = convert_mat4_from_jolt_to_glm(inModelMatrix);
+        GLint local_to_world_uniform_location =
+            glGetUniformLocation(shader_pipeline.shader_program_id, "local_to_world");
+        glUniformMatrix4fv(local_to_world_uniform_location, 1, GL_FALSE, glm::value_ptr(local_to_world));
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawElements(GL_TRIANGLES, triangle_batch->indices.size(), GL_UNSIGNED_INT, 0);
-  } else {
-    //        printf("this triangle batch does not use indices\n");
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDrawElements(GL_TRIANGLES, triangle_batch->indices.size(), GL_UNSIGNED_INT, 0);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else {
+        //        printf("this triangle batch does not use indices\n");
 
-    glUseProgram(shader_pipeline.shader_program_id);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, triangle_batch->triangle_vertices.size() * sizeof(float),
-                 &triangle_batch->triangle_vertices.front(), GL_STATIC_DRAW);
+        glUseProgram(shader_pipeline.shader_program_id);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, triangle_batch->triangle_vertices.size() * sizeof(float),
+                     &triangle_batch->triangle_vertices.front(), GL_STATIC_DRAW);
 
-    GLuint position_location = glGetAttribLocation(shader_pipeline.shader_program_id, "position");
-    glEnableVertexAttribArray(position_location);
-    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+        GLuint position_location = glGetAttribLocation(shader_pipeline.shader_program_id, "position");
+        glEnableVertexAttribArray(position_location);
+        glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
-    glm::mat4 local_to_world = convert_mat4_from_jolt_to_glm(inModelMatrix);
-    GLint local_to_world_uniform_location = glGetUniformLocation(shader_pipeline.shader_program_id, "local_to_world");
-    glUniformMatrix4fv(local_to_world_uniform_location, 1, GL_FALSE, glm::value_ptr(local_to_world));
+        glm::mat4 local_to_world = convert_mat4_from_jolt_to_glm(inModelMatrix);
+        GLint local_to_world_uniform_location =
+            glGetUniformLocation(shader_pipeline.shader_program_id, "local_to_world");
+        glUniformMatrix4fv(local_to_world_uniform_location, 1, GL_FALSE, glm::value_ptr(local_to_world));
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawArrays(GL_TRIANGLES, 0, triangle_batch->num_triangles * 3);
-  }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDrawArrays(GL_TRIANGLES, 0, triangle_batch->num_triangles * 3);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 // void PhysicsDebugRenderer::FinalizePrimitive()
@@ -169,7 +173,7 @@ void PhysicsDebugRenderer::DrawGeometry(JPH::RMat44Arg inModelMatrix, const JPH:
 
 void PhysicsDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3,
                                         JPH::ColorArg inColor, ECastShadow inCastShadow) {
-  printf("trying to draw triangle\n");
+    printf("trying to draw triangle\n");
 }
 
 // void PhysicsDebugRenderer::DrawInstances(const Geometry *inGeometry, const Array<int> &inStartIdx)
@@ -196,7 +200,7 @@ void PhysicsDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, 
 
 void PhysicsDebugRenderer::DrawText3D(JPH::RVec3Arg inPosition, const JPH::string_view &inString, JPH::ColorArg inColor,
                                       float inHeight) {
-  printf("trying to draw triangle\n");
+    printf("trying to draw triangle\n");
 }
 
 // void PhysicsDebugRenderer::DrawLines()
