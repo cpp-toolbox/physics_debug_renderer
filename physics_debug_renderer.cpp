@@ -2,12 +2,12 @@
 #include "../../math/conversions.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 PhysicsDebugRenderer::PhysicsDebugRenderer() {
-    shader_pipeline.load_in_shaders_from_file("../graphics/shaders/CWL_v_transformation.vert",
-                                              "../graphics/shaders/fixed_color.frag");
+    shader_pipeline.load_in_shaders_from_file("../../src/graphics/shaders/CWL_v_transformation.vert",
+                                              "../../src/graphics/shaders/fixed_color.frag");
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ibo);

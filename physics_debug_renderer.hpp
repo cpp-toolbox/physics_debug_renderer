@@ -1,9 +1,7 @@
 #ifndef PHYSICS_DEBUG_RENDERER_HPP
 #define PHYSICS_DEBUG_RENDERER_HPP
 
-
-#include "../shader_pipeline/shader_pipeline.hpp"
-
+#include "sbpt_generated_includes.hpp"
 
 #ifndef JPH_DEBUG_RENDERER
 #define JPH_DEBUG_RENDERER
