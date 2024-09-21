@@ -5,8 +5,8 @@
 
 PhysicsDebugRenderer::PhysicsDebugRenderer(ShaderCache &shader_cache, unsigned int &screen_width,
                                            unsigned int &screen_height,
-                                           JPH::Ref<JPH::CharacterVirtual> &physics_character, Camera &camera, int &fov,
-                                           float &render_distance)
+                                           JPH::Ref<JPH::CharacterVirtual> &physics_character, Camera &camera,
+                                           float &fov, float &render_distance)
     : shader_cache(shader_cache), screen_width(screen_width), screen_height(screen_height),
       physics_character(physics_character), camera(camera), fov(fov), render_distance(render_distance) {
 

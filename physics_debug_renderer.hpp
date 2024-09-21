@@ -18,7 +18,7 @@ class PhysicsDebugRenderer final : public JPH::DebugRenderer {
 
   public:
     explicit PhysicsDebugRenderer(ShaderCache &shader_cache, unsigned int &screen_width, unsigned int &screen_height,
-                                  JPH::Ref<JPH::CharacterVirtual> &physics_character, Camera &camera, int &fov,
+                                  JPH::Ref<JPH::CharacterVirtual> &physics_character, Camera &camera, float &fov,
                                   float &render_distance);
 
     ;
@@ -28,7 +28,7 @@ class PhysicsDebugRenderer final : public JPH::DebugRenderer {
     unsigned int &screen_width;
     JPH::Ref<JPH::CharacterVirtual> physics_character;
     Camera &camera;
-    int &fov;
+    float &fov;
     float &render_distance;
 
     //  ~PhysicsDebugRenderer() override;
