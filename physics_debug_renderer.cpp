@@ -88,9 +88,10 @@ void PhysicsDebugRenderer::DrawGeometry(JPH::RMat44Arg inModelMatrix, const JPH:
                      &triangle_batch->indices.front(), GL_STATIC_DRAW);
 
         unsigned int id = shader_cache.get_shader_program(ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR).id;
-        shader_cache.set_uniform(ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, ShaderUniformVariable::COLOR,
+        shader_cache.set_uniform(ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, ShaderUniformVariable::RGBA_COLOR,
                                  glm::vec4(0, 1, 0, 1));
-        GLuint position_location = glGetAttribLocation(id, "position");
+
+        GLuint position_location = glGetAttribLocation(id, "xyz_position");
         glEnableVertexAttribArray(position_location);
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
@@ -110,10 +111,10 @@ void PhysicsDebugRenderer::DrawGeometry(JPH::RMat44Arg inModelMatrix, const JPH:
         glBufferData(GL_ARRAY_BUFFER, triangle_batch->triangle_vertices.size() * sizeof(float),
                      &triangle_batch->triangle_vertices.front(), GL_STATIC_DRAW);
 
-        shader_cache.set_uniform(ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, ShaderUniformVariable::COLOR,
+        shader_cache.set_uniform(ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, ShaderUniformVariable::RGBA_COLOR,
                                  glm::vec4(0, 1, 0, 1));
 
-        GLuint position_location = glGetAttribLocation(id, "position");
+        GLuint position_location = glGetAttribLocation(id, "xyz_position");
         glEnableVertexAttribArray(position_location);
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
