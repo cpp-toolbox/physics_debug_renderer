@@ -1,121 +1,99 @@
 #ifndef PHYSICS_DEBUG_RENDERER_HPP
 #define PHYSICS_DEBUG_RENDERER_HPP
 
-#ifndef JPH_DEBUG_RENDERER
-#define JPH_DEBUG_RENDERER
-#endif
-
+#include <iostream>
 #include <Jolt/Jolt.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
 #include <Jolt/Renderer/DebugRenderer.h>
-
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <vector>
 
 #include "sbpt_generated_includes.hpp"
-#include "../../state/camera/camera.hpp"
-#include "Jolt/Physics/Character/CharacterVirtual.h"
 
-class PhysicsDebugRenderer final : public JPH::DebugRenderer {
+class PhysicsDebugRenderer : public JPH::DebugRendererSimple {
+  private:
+    CW_V_TransformationWithColoredVertexShaderRenderer &renderer;
 
-  public:
-    explicit PhysicsDebugRenderer(ShaderCache &shader_cache, unsigned int &screen_width, unsigned int &screen_height,
-                                  JPH::Ref<JPH::CharacterVirtual> &physics_character, Camera &camera, float &fov,
-                                  float &render_distance);
-
-    ;
-
-    ShaderCache &shader_cache;
-    unsigned int &screen_height;
-    unsigned int &screen_width;
-    JPH::Ref<JPH::CharacterVirtual> physics_character;
-    Camera &camera;
-    float &fov;
-    float &render_distance;
-
-    //  ~PhysicsDebugRenderer() override;
-
-    /// Implementation of DebugRenderer interface
-    void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
-
-    void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
-                      ECastShadow inCastShadow = ECastShadow::Off) override;
-
-    Batch CreateTriangleBatch(const Triangle *inTriangles, int inTriangleCount) override;
-
-    Batch CreateTriangleBatch(const Vertex *inVertices, int inVertexCount, const JPH::uint32 *inIndices,
-                              int inIndexCount) override;
-
-    void DrawGeometry(JPH::RMat44Arg inModelMatrix, const JPH::AABox &inWorldSpaceBounds, float inLODScaleSq,
-                      JPH::ColorArg inModelColor, const GeometryRef &inGeometry, ECullMode inCullMode,
-                      ECastShadow inCastShadow, EDrawMode inDrawMode) override;
-
-    void DrawText3D(JPH::RVec3Arg inPosition, const JPH::string_view &inString, JPH::ColorArg inColor,
-                    float inHeight) override;
-
-    // opengl related things
-    unsigned int vbo, ibo, vao;
-};
-
-class ThatIHaveToMake : public JPH::RefTarget<ThatIHaveToMake> {};
-
-class TriangleData : public JPH::RefTargetVirtual, public ThatIHaveToMake {
-  public:
-    int num_triangles;
-    std::vector<float> triangle_vertices;
-
-    TriangleData(const JPH::DebugRenderer::Triangle *triangles, int num_triangles) {
-
-        this->num_triangles = num_triangles;
-        this->uses_indices = false;
-
-        for (int i = 0; i < num_triangles; i += 1) {
-            JPH::DebugRenderer::Triangle triangle = triangles[i];
-
-            JPH::DebugRenderer::Vertex v1 = triangle.mV[0];
-            JPH::DebugRenderer::Vertex v2 = triangle.mV[1];
-            JPH::DebugRenderer::Vertex v3 = triangle.mV[2];
-
-            triangle_vertices.push_back(v1.mPosition.x);
-            triangle_vertices.push_back(v1.mPosition.y);
-            triangle_vertices.push_back(v1.mPosition.z);
-
-            triangle_vertices.push_back(v2.mPosition.x);
-            triangle_vertices.push_back(v2.mPosition.y);
-            triangle_vertices.push_back(v2.mPosition.z);
-
-            triangle_vertices.push_back(v3.mPosition.x);
-            triangle_vertices.push_back(v3.mPosition.y);
-            triangle_vertices.push_back(v3.mPosition.z);
-        }
+    glm::vec3 colorToVec3(JPH::ColorArg color) {
+        return glm::vec3(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
     }
 
-    bool uses_indices;
-
-    std::vector<float> vertices;
-    std::vector<JPH::uint32> indices;
-    //    std::vector<int> indices;
-
-    TriangleData(const JPH::DebugRenderer::Vertex *vertices, int num_vertices, const JPH::uint32 *indices,
-                 int num_indices) {
-        this->uses_indices = true;
-
-        for (int i = 0; i < num_vertices; i++) {
-            JPH::DebugRenderer::Vertex vertex = vertices[i];
-            this->vertices.push_back(vertex.mPosition.x);
-            this->vertices.push_back(vertex.mPosition.y);
-            this->vertices.push_back(vertex.mPosition.z);
-        }
-
-        for (int i = 0; i < num_indices; i++) {
-            JPH::uint32 index = indices[i];
-            //            int index = indices[i];
-            this->indices.push_back(index);
-        }
+    glm::vec3 rvec3ToVec3(JPH::RVec3Arg vec) {
+        return glm::vec3(static_cast<float>(vec.GetX()), static_cast<float>(vec.GetY()),
+                         static_cast<float>(vec.GetZ()));
     }
 
-    virtual void AddRef() override { ThatIHaveToMake::AddRef(); }
-    virtual void Release() override {
-        if (--mRefCount == 0)
-            delete this;
+    const float line_width = 0.05;
+
+  public:
+    explicit PhysicsDebugRenderer(CW_V_TransformationWithColoredVertexShaderRenderer &renderer) : renderer(renderer) {}
+
+    virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override {
+        glm::vec3 from = rvec3ToVec3(inFrom);
+        glm::vec3 to = rvec3ToVec3(inTo);
+        glm::vec3 direction = glm::normalize(to - from);
+
+        // Create two perpendicular vectors to the line direction
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        if (glm::abs(glm::dot(direction, up)) > 0.99f) {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        glm::vec3 perpendicular1 = glm::normalize(glm::cross(direction, up));
+        glm::vec3 perpendicular2 = glm::normalize(glm::cross(direction, perpendicular1));
+
+        glm::vec3 offset1 = perpendicular1 * (line_width * 0.5f);
+        glm::vec3 offset2 = perpendicular2 * (line_width * 0.5f);
+
+        // First quad (using perpendicular1)
+        std::vector<glm::vec3> positions = {
+            // First quad vertices (0-3)
+            from - offset1, // 0: bottom left
+            from + offset1, // 1: bottom right
+            to + offset1,   // 2: top right
+            to - offset1,   // 3: top left
+
+            // Second quad vertices (4-7) - perpendicular to first quad
+            from - offset2, // 4: bottom left
+            from + offset2, // 5: bottom right
+            to + offset2,   // 6: top right
+            to - offset2    // 7: top left
+        };
+
+        glm::vec3 color = colorToVec3(inColor);
+        std::vector<glm::vec3> colors = {
+            color, color, color, color, // First quad colors
+            color, color, color, color  // Second quad colors
+        };
+
+        // Indices for both quads
+        // First quad: two triangles (0,1,2) and (0,2,3)
+        // Second quad: two triangles (4,5,6) and (4,6,7)
+        std::vector<unsigned int> indices = {
+            0, 1, 2, 0, 2, 3, // First quad
+            4, 5, 6, 4, 6, 7  // Second quad
+        };
+
+        renderer.queue_draw(indices, positions, colors);
+    }
+
+    virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
+                              ECastShadow inCastShadow) override {
+
+        std::vector<glm::vec3> positions = {rvec3ToVec3(inV1), rvec3ToVec3(inV2), rvec3ToVec3(inV3)};
+
+        glm::vec3 color = colorToVec3(inColor);
+        std::vector<glm::vec3> colors = {color, color, color};
+
+        std::vector<unsigned int> indices = {0, 1, 2};
+
+        renderer.queue_draw(indices, positions, colors);
+    }
+
+    virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor,
+                            float inHeight) override {
+
+        // Not implemented as requested
     }
 };
 
