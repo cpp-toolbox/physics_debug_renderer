@@ -1,10 +1,12 @@
 #ifndef PHYSICS_DEBUG_RENDERER_HPP
 #define PHYSICS_DEBUG_RENDERER_HPP
 
+#include <glm/fwd.hpp>
 #include <iostream>
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #include <Jolt/Renderer/DebugRenderer.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -23,7 +25,7 @@ class PhysicsDebugRenderer : public JPH::DebugRendererSimple {
                          static_cast<float>(vec.GetZ()));
     }
 
-    const float line_width = 0.05;
+    const float line_width = 0.01;
 
   public:
     explicit PhysicsDebugRenderer(CW_V_TransformationWithColoredVertexDirectShaderRenderer &renderer)
@@ -94,8 +96,17 @@ class PhysicsDebugRenderer : public JPH::DebugRendererSimple {
     virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor,
                             float inHeight) override {
 
-        // Not implemented as requested
+        auto width = 50 * inHeight;
+        vertex_geometry::Rectangle text_rect(j2g(inPosition), width, 10 * inHeight);
+        draw_info::IndexedVertexPositions text_ivp = grid_font::get_text_geometry(std::string(inString), text_rect);
+
+        glm::vec3 color = colorToVec3(inColor);
+        std::vector<glm::vec3> cs(text_ivp.xyz_positions.size(), color);
+
+        renderer.queue_draw(text_ivp.indices, text_ivp.xyz_positions, cs);
     }
 };
+
+void draw_character_state(PhysicsDebugRenderer &physics_debug_renderer, const JPH::CharacterVirtual *inCharacter);
 
 #endif // PHYSICS_DEBUG_RENDERER_HPP
