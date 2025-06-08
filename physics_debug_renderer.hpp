@@ -12,7 +12,7 @@
 
 class PhysicsDebugRenderer : public JPH::DebugRendererSimple {
   private:
-    CW_V_TransformationWithColoredVertexShaderRenderer &renderer;
+    CW_V_TransformationWithColoredVertexDirectShaderRenderer &renderer;
 
     glm::vec3 colorToVec3(JPH::ColorArg color) {
         return glm::vec3(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
@@ -26,7 +26,8 @@ class PhysicsDebugRenderer : public JPH::DebugRendererSimple {
     const float line_width = 0.05;
 
   public:
-    explicit PhysicsDebugRenderer(CW_V_TransformationWithColoredVertexShaderRenderer &renderer) : renderer(renderer) {}
+    explicit PhysicsDebugRenderer(CW_V_TransformationWithColoredVertexDirectShaderRenderer &renderer)
+        : renderer(renderer) {}
 
     virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override {
         glm::vec3 from = rvec3ToVec3(inFrom);
